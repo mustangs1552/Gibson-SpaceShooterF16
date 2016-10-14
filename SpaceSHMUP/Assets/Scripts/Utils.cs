@@ -12,7 +12,7 @@ public class Utils : MonoBehaviour
     #endregion
 
     #region Static
-
+    private static Bounds camBounds;
     #endregion
 
     #region Public
@@ -46,6 +46,20 @@ public class Utils : MonoBehaviour
         foreach (Transform t in go.transform) b = BoundsUnion(b, CombineBoundsOfChildren(t.gameObject));
 
         return b;
+    }
+
+    public static Bounds CamBounds
+    {
+        get
+        {
+            if (camBounds.size == Vector3.zero) SetCameraBounds();
+            return camBounds;
+        }
+    }
+
+    public static void SetCameraBounds(Camera cam = null)
+    {
+
     }
     #endregion
 
