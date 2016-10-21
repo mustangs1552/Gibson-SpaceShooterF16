@@ -96,6 +96,14 @@ public class Hero : MonoBehaviour
         pos.y += yAxis * speed * Time.deltaTime;
         transform.position = pos;
 
+        bounds.center = transform.position;
+        Vector3 off = Utils.ScreenBoundsCheck(bounds, BoundsTest.onScreen);
+        if(off != Vector3.zero)
+        {
+            pos -= off;
+            transform.position = pos;
+        }
+
         transform.rotation = Quaternion.Euler(yAxis * pitchMult, xAxis * rollMult, 0);
     }
     // LateUpdate is called every frame after all other update functions, if the Behaviour is enabled.
