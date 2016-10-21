@@ -1,27 +1,27 @@
 ﻿// (Unity3D) New monobehaviour script that includes regions for common sections, and supports debugging.
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
-public class Hero : MonoBehaviour
+public class Main : MonoBehaviour
 {
     #region GlobalVareables
     #region DefaultVareables
     public bool isDebug = false;
-    private string debugScriptName = "Hero";
+    private string debugScriptName = "Main";
     #endregion
 
     #region Static
-    public static Hero S = null;
+    public static Main S;
     #endregion
 
     #region Public
-    public float speed = 30;
-    public float rollMult = -45;
-    public float pitchMult = 360;
-    public float shieldLevel = 1;
+    public GameObject[] prefabEnemies;
+    public float enemySpawnPerSecond = .5f;
+    public float enemySpawnPadding = 1.5f;
 
-    [Header("For Debug View Only")]
-    public Bounds bounds;
+    [Header("For debug view only")]
+    public float enemySpawnRate = 0;
     #endregion
 
     #region Private
@@ -35,7 +35,20 @@ public class Hero : MonoBehaviour
     #endregion
 
     #region Public
+    public void SpawnEnemy()
+    {
+        int ndx = Random.Range(0, prefabEnemies.Length);
+        GameObject go = Instantiate(prefabEnemies[ndx]) as GameObject;
 
+        Vector3 pos = Vector3.zero;
+        float xMin = Utils.CamBounds.min.x + enemySpawnPadding;
+        float xMax = Utils.CamBounds.max.x - enemySpawnPadding;
+        pos.x = Random.Range(xMin, xMax);
+        pos.y = Utils.CamBounds.max.y + enemySpawnPadding;
+        go.transform.position = pos;
+
+        Invoke("SpawnEnemy", enemySpawnRate);
+    }
     #endregion
 
     #region Private
@@ -73,7 +86,10 @@ public class Hero : MonoBehaviour
         PrintDebugMsg("Loaded.");
 
         S = this;
-        bounds = Utils.CombineBoundsOfChildren(this.gameObject);
+
+        Utils.SetCameraBounds(this.GetComponent<Camera>());
+        enemySpawnRate = 1f / enemySpawnPerSecond;
+        Invoke("SpawnEnemy", enemySpawnRate);
     }
     // Start is called on the frame when a script is enabled just before any of the Update methods is called the first time.
     void Start()
@@ -88,24 +104,7 @@ public class Hero : MonoBehaviour
     // Update is called every frame, if the MonoBehaviour is enabled.
     void Update()
     {
-        float xAxis = Input.GetAxis("Horizontal");
-        float yAxis = Input.GetAxis("Vertical");
 
-        Vector3 pos = transform.position;
-        pos.x += xAxis * speed * Time.deltaTime;
-        pos.y += yAxis * speed * Time.deltaTime;
-        transform.position = pos;
-
-        bounds.center = transform.position;
-        Vector3 off = Utils.ScreenBoundsCheck(bounds, BoundsTest.onScreen);
-        PrintDebugMsg(off + "");
-        if(off != Vector3.zero)
-        {
-            pos -= off;
-            transform.position = pos;
-        }
-
-        transform.rotation = Quaternion.Euler(yAxis * pitchMult, xAxis * rollMult, 0);
     }
     // LateUpdate is called every frame after all other update functions, if the Behaviour is enabled.
     void LateUpdate()

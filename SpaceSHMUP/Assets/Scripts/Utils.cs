@@ -100,33 +100,38 @@ public class Utils : MonoBehaviour
 
                 if (pos.x > bigB.max.x) off.x = pos.x - bigB.max.x;
                 else if (pos.x < bigB.min.x) off.x = pos.x - bigB.min.x;
+
                 if (pos.y > bigB.max.y) off.y = pos.y - bigB.max.y;
                 else if (pos.y < bigB.min.y) off.y = pos.y - bigB.min.y;
+
                 if (pos.z > bigB.max.z) off.z = pos.z - bigB.max.z;
                 else if (pos.z < bigB.min.z) off.z = pos.z - bigB.min.z;
 
-                break;
+                return off;
             case BoundsTest.onScreen:
-                if (bigB.Contains(pos)) return Vector3.zero;
+                if (bigB.Contains(lilB.min) && bigB.Contains(lilB.min)) return Vector3.zero;
 
-                if (pos.x > lilB.max.x) off.x = pos.x - lilB.max.x;
-                else if (pos.x < lilB.min.x) off.x = pos.x - lilB.min.x;
-                if (pos.y > lilB.max.y) off.y = pos.y - lilB.max.y;
-                else if (pos.y < lilB.min.y) off.y = pos.y - lilB.min.y;
-                if (pos.z > lilB.max.z) off.z = pos.z - lilB.max.z;
-                else if (pos.z < lilB.min.z) off.z = pos.z - lilB.min.z;
+                if (lilB.max.x > bigB.max.x) off.x = lilB.max.x - bigB.max.x;
+                else if (lilB.min.x < bigB.min.x) off.x = lilB.min.x - bigB.min.x;
+
+                if (lilB.max.y > bigB.max.y) off.y = lilB.max.y - bigB.max.y;
+                else if (lilB.min.y < bigB.min.y) off.y = lilB.min.y - bigB.min.y;
+
+                if (lilB.max.z > bigB.max.z) off.z = lilB.max.z - bigB.max.z;
+                else if (lilB.min.z < bigB.min.z) off.z = lilB.min.z - bigB.min.z;
 
                 return off;
             case BoundsTest.offScreen:
                 bool cMin = bigB.Contains(lilB.min);
                 bool cMax = bigB.Contains(lilB.max);
-
                 if (cMin || cMax) return Vector3.zero;
 
                 if (lilB.min.x > bigB.max.x) off.x = lilB.min.x - bigB.max.x;
                 else if (lilB.max.x < bigB.min.x) off.x = lilB.max.x - bigB.min.x;
+
                 if (lilB.min.y > bigB.max.y) off.y = lilB.min.y - bigB.max.y;
                 else if (lilB.max.y < bigB.min.y) off.y = lilB.max.y - bigB.min.y;
+
                 if (lilB.min.z > bigB.max.z) off.z = lilB.min.z - bigB.max.z;
                 else if (lilB.max.z < bigB.min.z) off.z = lilB.max.z - bigB.min.z;
 
