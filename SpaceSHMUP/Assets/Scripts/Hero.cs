@@ -19,9 +19,14 @@ public class Hero : MonoBehaviour
     public float rollMult = -45;
     public float pitchMult = 360;
     public float shieldLevel = 1;
+    public float gameRestartDelay = 2f;
+    public Weapon[] weapons;
 
     [Header("For Debug View Only")]
     public Bounds bounds;
+    public GameObject lastTriggerdGO = null;
+    public delegate void WeaponFireDelegate();
+    public WeaponFireDelegate fireDelegate;
     #endregion
 
     #region Private
@@ -35,11 +40,45 @@ public class Hero : MonoBehaviour
     #endregion
 
     #region Public
-
+    public void AbsorbPowerUp(GameObject go)
+    {
+        PowerUp pu = go.GetComponent<PowerUp>();
+        switch(pu.type)
+        {
+            case WeaponType.Shield:
+                shieldLevel++;
+                break;
+            default:
+                if(pu.type == weapons[0].Type)
+                {
+                    Weapon w = GetEmptyWeaponSlot();
+                    if (w != null) w.SetType(pu.type);
+                    else
+                    {
+                        ClearWeapons();
+                        weapons[0].SetType(pu.type);
+                    }
+                }
+                break;
+        }
+        pu.AbsorbedBy(this.gameObject);
+    }
     #endregion
 
     #region Private
+    private Weapon GetEmptyWeaponSlot()
+    {
+        for(int i = 0; i < weapons.Length; i++)
+        {
+            if (weapons[i].Type == WeaponType.None) return weapons[i];
+        }
+        return null;
+    }
 
+    private void ClearWeapons()
+    {
+        foreach (Weapon w in weapons) w.SetType(WeaponType.None);
+    }
     #endregion
 
     #region Debug
@@ -58,12 +97,44 @@ public class Hero : MonoBehaviour
     #endregion
 
     #region Getters_Setters
-
+    public float ShieldLevel
+    {
+        get
+        {
+            return shieldLevel;
+        }
+        set
+        {
+            shieldLevel = Mathf.Min(value, 4);
+            if (value < 0)
+            {
+                Destroy(this.gameObject);
+                Main.S.DelayedRestart(gameRestartDelay);
+            }
+        }
+    }
     #endregion
     #endregion
 
     #region UnityFunctions
+    public void OnTriggerEnter(Collider other)
+    {
+        GameObject go = Utils.FindTaggedParent(other.gameObject);
+        if (go != null)
+        {
+            if (go == lastTriggerdGO) return;
+            lastTriggerdGO = go;
 
+            if (go.tag == "Enemy")
+            {
+                ShieldLevel--;
+                Destroy(go);
+            }
+            else if (go.tag == "PowerUp") AbsorbPowerUp(go);
+            else PrintDebugMsg("Triggered by object with a tagged parent: " + go.name);
+        }
+        else PrintDebugMsg("Triggered by: " + other.gameObject.name);
+    }
     #endregion
 
     #region Start_Update
@@ -78,7 +149,8 @@ public class Hero : MonoBehaviour
     // Start is called on the frame when a script is enabled just before any of the Update methods is called the first time.
     void Start()
     {
-
+        ClearWeapons();
+        weapons[0].SetType(WeaponType.Blaster);
     }
     // This function is called every fixed framerate frame, if the MonoBehaviour is enabled.
     void FixedUpdate()
@@ -98,7 +170,6 @@ public class Hero : MonoBehaviour
 
         bounds.center = transform.position;
         Vector3 off = Utils.ScreenBoundsCheck(bounds, BoundsTest.onScreen);
-        PrintDebugMsg(off + "");
         if(off != Vector3.zero)
         {
             pos -= off;
@@ -106,6 +177,8 @@ public class Hero : MonoBehaviour
         }
 
         transform.rotation = Quaternion.Euler(yAxis * pitchMult, xAxis * rollMult, 0);
+
+        if (Input.GetAxis("Jump") == 1 && fireDelegate != null) fireDelegate();
     }
     // LateUpdate is called every frame after all other update functions, if the Behaviour is enabled.
     void LateUpdate()

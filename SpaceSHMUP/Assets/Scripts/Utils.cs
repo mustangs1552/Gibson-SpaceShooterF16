@@ -33,6 +33,7 @@ public class Utils : MonoBehaviour
 
     #region CustomFunction
     #region Static
+    #region Bounds Functions
     public static Bounds BoundsUnion(Bounds b0, Bounds b1)
     {
         if (b0.size == Vector3.zero && b1.size != Vector3.zero) return b1;
@@ -140,6 +141,30 @@ public class Utils : MonoBehaviour
 
         return Vector3.zero;
     }
+    #endregion
+
+    #region TransformFunctions
+    public static GameObject FindTaggedParent(GameObject go)
+    {
+        if (go.tag != "Untagged") return go;
+        if (go.transform.parent == null) return null;
+        return FindTaggedParent(go.transform.parent.gameObject);
+    }
+    public static GameObject FindTaggedParent(Transform t)
+    {
+        return FindTaggedParent(t.gameObject);
+    }
+    #endregion
+
+    #region Material Functions
+    public static Material[] GetAllMaterials(GameObject go)
+    {
+        List<Material> mats = new List<Material>();
+        if (go.GetComponent<Renderer>() != null) mats.Add(go.GetComponent<Renderer>().material);
+        foreach (Transform t in go.transform) mats.AddRange(GetAllMaterials(t.gameObject));
+        return mats.ToArray();
+    }
+    #endregion
     #endregion
 
     #region Public

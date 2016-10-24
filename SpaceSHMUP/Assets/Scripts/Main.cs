@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class Main : MonoBehaviour
 {
@@ -13,14 +14,17 @@ public class Main : MonoBehaviour
 
     #region Static
     public static Main S;
+    public static Dictionary<WeaponType, WeaponDefinition> W_DEFS;
     #endregion
 
     #region Public
     public GameObject[] prefabEnemies;
     public float enemySpawnPerSecond = .5f;
     public float enemySpawnPadding = 1.5f;
+    public WeaponDefinition[] weaponDefinitions;
 
     [Header("For debug view only")]
+    public WeaponType[] activeWeaponTypes;
     public float enemySpawnRate = 0;
     #endregion
 
@@ -31,7 +35,11 @@ public class Main : MonoBehaviour
 
     #region CustomFunction
     #region Static
-
+    public static WeaponDefinition GetWeaponDefinition(WeaponType wt)
+    {
+        if (W_DEFS.ContainsKey(wt)) return W_DEFS[wt];
+        return new WeaponDefinition();
+    }
     #endregion
 
     #region Public
@@ -48,6 +56,15 @@ public class Main : MonoBehaviour
         go.transform.position = pos;
 
         Invoke("SpawnEnemy", enemySpawnRate);
+    }
+
+    public void DelayedRestart(float delay)
+    {
+        Invoke("Restart", delay);
+    }
+    public void Restart()
+    {
+        SceneManager.LoadScene("scene0");
     }
     #endregion
 
@@ -90,11 +107,15 @@ public class Main : MonoBehaviour
         Utils.SetCameraBounds(this.GetComponent<Camera>());
         enemySpawnRate = 1f / enemySpawnPerSecond;
         Invoke("SpawnEnemy", enemySpawnRate);
+
+        W_DEFS = new Dictionary<WeaponType, WeaponDefinition>();
+        foreach (WeaponDefinition def in weaponDefinitions) W_DEFS[def.type] = def;
     }
     // Start is called on the frame when a script is enabled just before any of the Update methods is called the first time.
     void Start()
     {
-
+        activeWeaponTypes = new WeaponType[weaponDefinitions.Length];
+        for (int i = 0; i < weaponDefinitions.Length; i++) activeWeaponTypes[i] = weaponDefinitions[i].type;
     }
     // This function is called every fixed framerate frame, if the MonoBehaviour is enabled.
     void FixedUpdate()
