@@ -20,6 +20,7 @@ public class Enemy : MonoBehaviour
     public float health = 10;
     public int score = 100;
     public int showDamageForFrames = 2;
+    [Range(0, 1)] public float powerUpDropChance = 1f;
 
     [Header("For Debug View Only")]
     public Color[] originalColors;
@@ -123,7 +124,11 @@ public class Enemy : MonoBehaviour
                 }
                 ShowDamage();
                 health -= Main.W_DEFS[p.Type].damageOnHit;
-                if (health <= 0) Destroy(this.gameObject);
+                if (health <= 0)
+                {
+                    Main.S.ShipDestroyed(this);
+                    Destroy(this.gameObject);
+                }
                 Destroy(other);
                 break;
         }
